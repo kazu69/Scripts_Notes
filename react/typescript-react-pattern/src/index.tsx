@@ -168,13 +168,13 @@ class App extends React.Component<AppProps, AppState> {
     const {todos} = this.props
     return (
       <StyledComponent>
-        <>
+        <React.Fragment>
           <TodoInputFieldWithForwardedRef
             handleChange={this.changeHandler}
             forwardRef={this.textInputFieldRef}
           />
           <AddTodoButton handleClick={this.addTodo} />
-        </>
+        </React.Fragment>
         <ul className="todo-list">
           {todos.map((todo:string, index: number) => {
             return <TodoItem key={index}>
