@@ -1,14 +1,15 @@
-import {createStore, Dispatch, bindActionCreators, Action} from 'redux'
+import {createStore, Dispatch, bindActionCreators, applyMiddleware, Middleware, StoreEnhancer} from 'redux'
 import React from 'react'
 import ReactDOM from 'react-dom'
 import { Provider, connect } from 'react-redux'
 import { pure } from 'recompose'
 import styled from 'styled-components'
+import thunk from 'redux-thunk';
 
 // Define Action Type
 enum ActionTypes {
   ADD_TODO = 'ADD_TODO',
-  REMOVE_TODO = 'REMOVE_TODO'
+  REMOVE_TODO = 'REMOVE_TODO',
 }
 
 // Define ActionCreator
@@ -27,23 +28,33 @@ interface AppActionWithPayload <T extends string, P extends {} = {}> {
 type AddTodoAction = ReturnType<typeof addTodoActionCreator>
 const addTodoActionCreator = (todo: string) => ({
   type: ActionTypes.ADD_TODO,
-  payload: {
-    todo
-  },
+  payload: todo,
 })
 
 type RemoveTodoAction = ReturnType<typeof removeTodoActionCreator>
 const removeTodoActionCreator = (id: number) => ({
   type: ActionTypes.REMOVE_TODO,
-  payload: {
-    id
-  },
+  payload: id,
 })
 
+// For example redux-thunk
+// Make it possible to give a `function` to action and do arbitrary processing middlewear
+// actionで関数を利用できるようにし、その関数経由で任意の処理を行える
+type AsyncAddTodoAction = ReturnType<typeof asyncAddTodoActionCreator>
+const asyncAddTodoActionCreator = (todo: string) => (dispatch: Dispatch) => {
+  const delay: number = 1000
+  console.log('asyncAddTodoActionCreator called')
+  setTimeout(() => {
+    dispatch(addTodoActionCreator(todo))
+    console.log('async add todo done')
+  }, delay)
+}
+
 // Define Action Type | Union Type
-type TodoAction = AddTodoAction | RemoveTodoAction
+type TodoAction = AddTodoAction | RemoveTodoAction | AsyncAddTodoAction
 type TodoActionCreators = {
   add: (todo: string) => AddTodoAction
+  addAsync: (todo: string) => AsyncAddTodoAction
   remove: (id: number) => RemoveTodoAction
 }
 
@@ -54,18 +65,62 @@ const reducer = (state: TodoState = defaultState, action: TodoAction): TodoState
   let todos: string[];
   switch (action.type) {
     case ActionTypes.ADD_TODO:
-      todos = state.todos.concat(action.payload.todo)
+      const todo = action.payload as string
+      todos = state.todos.concat(todo)
       return {...state, todos}
     case ActionTypes.REMOVE_TODO:
-      todos = state.todos.filter((_, i) => i !== action.payload.id )
+      const id = action.payload
+      todos = state.todos.filter((_, i) => i !== id)
       return {...state, todos}
     default:
       return {...state}
   }
 }
 
-// Create Store
-const Store = createStore(reducer)
+// store has only {getState: func, dispatch: func}
+const loggerMiddlewear: Middleware = (store) => {
+  // next === store.dispatch
+  // Next is executed only for the following Middleware,
+  // but store.dispatch is executed from the beginning of the Middleware chain
+  // If you use store.dispatch,
+  // Middleware will dispatch Actions and fall into an infinite loop where Middleware itself will be called recursively.
+  // nextは後続のmiddlewearのみ実施するが、store.dispatchはmiddlewearチェーンを最初から実施する
+  // store.dispatchを使う場合は正しく制御しないとミドルウェア時代の再帰呼び出しにより無限ループに陥る
+  return (next: Dispatch) => {
+    return (action: TodoAction) => {
+      // If the action returns a Promise object,
+      // for example when communicating asynchronously with the server before updating the store,
+      // you can proceed as follows
+      /*
+        dispatch({type: ActionTypes.ASYNC_PENDING_TODO})
+        action
+        .then(response => {})
+        .catch(error => {})
+        .finaly()
+      */
+      const { getState, dispatch } = store
+      console.log('Will dispatch', action)
+      console.log('state before dispatch', getState())
+      const returnValue = next(action)
+      console.log('state after dispatch', getState())
+      return returnValue
+    }
+  }
+}
+
+const middlewears: Middleware[] = [thunk, loggerMiddlewear]
+const enhancers: StoreEnhancer = applyMiddleware(...middlewears)
+
+interface State {
+  [index: string]: string[]
+  todos: []
+}
+
+const initialState: State = {
+  todos: []
+}
+
+const Store = createStore(reducer, initialState, enhancers)
 
 // # Debug for Redux
 // Dispatch Handler func
@@ -76,8 +131,8 @@ const Store = createStore(reducer)
 // Store subscribed
 // Store.subscribe(handlechange)
 // console.log(Store.getState())
-// Store.dispatch(AddTodoActionCreator('test1'))
-// Store.dispatch(AddTodoActionCreator('test2'))
+// Store.dispatch(addTodoActionCreator('test1'))
+// Store.dispatch(addTodoActionCreator('test2'))
 // console.log(Store.getState())
 // Store.dispatch(removeTodoActionCreator(1))
 // console.log(Store.getState())
@@ -91,11 +146,11 @@ type AppProps = {
   setTextInputFieldRef: (element: HTMLInputElement) => void
 } & TodoActionCreators
 
-const initialState = {
+const AppInitialState = {
   input: ''
 }
 
-type AppState = Readonly<typeof initialState>
+type AppState = Readonly<typeof AppInitialState>
 
 const StyledComponent = styled.div`
   padding: 1em;
@@ -132,7 +187,7 @@ const StyledComponent = styled.div`
 class App extends React.Component<AppProps, AppState> {
 
   private textInputFieldRef: React.RefObject<HTMLInputElement>
-  readonly state = initialState
+  readonly state = AppInitialState
 
   constructor(props: AppProps) {
     super(props)
@@ -153,7 +208,7 @@ class App extends React.Component<AppProps, AppState> {
 
   private addTodo(event: React.MouseEvent<HTMLButtonElement>) {
     event.preventDefault()
-    this.props.add(this.state.input)
+    this.props.addAsync(this.state.input)
     this.setState({input: ''})
     this.textInputFieldRef.current!.value = ''
   }
@@ -197,6 +252,7 @@ type TodoItemwithDefaultProps = DefaultTodoProps | React.StatelessComponent
 
 // User-Defined Type Guard
 // https://www.typescriptlang.org/docs/handbook/advanced-types.html
+// 明示的にキャストしておく
 const isNamedSlots = (children: unknown): children is React.ReactChild =>
   typeof children === 'object' &&
   typeof children !== null &&
@@ -240,7 +296,7 @@ type TodoInputFieldWithDefaultProps = {
   forwardRef: React.RefObject<HTMLInputElement>
 } & DefaultTodoInputField
 
-let TodoInputField: React.SFC<TodoInputFieldWithDefaultProps> = (props) => {
+const TodoInputField: React.SFC<TodoInputFieldWithDefaultProps> = (props) => {
   const {id, name, placeholder, handleChange, forwardRef} = props
   return (
     <input
@@ -256,19 +312,20 @@ let TodoInputField: React.SFC<TodoInputFieldWithDefaultProps> = (props) => {
 }
 
 // TodoInputField.defaultProps = defaultTodoInputField
-const SfcWithDefaultProps = <DP extends object, SFC extends React.SFC<P>>(defaultProps: DP, SFComponent: SFC) => {
+const SfcWithDefaultProps = <DP extends object, SFC extends React.SFC>(defaultProps: DP, SFComponent: SFC): SFC => {
   SFComponent.defaultProps = defaultProps
   return SFComponent
 }
-TodoInputField = SfcWithDefaultProps(defaultTodoInputField, TodoInputField)
+const TodoInputFieldwithDefaultProps = SfcWithDefaultProps(defaultTodoInputField, TodoInputField)
 
 type TodoInputFieldWithForwardedRefProps = {
-  ref?: React.RefObject<TodoInputField>
+  children?: React.ReactNode
+  ref: React.RefObject<HTMLInputElement>
 }
 
 // Todo: detect react props attribute spread types
-const TodoInputFieldWithForwardedRef: React.RefForwardingComponent<TodoInputFieldWithForwardedRefProps> = React.forwardRef((props, ref) => (
-    <TodoInputField {...props} ref={ref} />
+const TodoInputFieldWithForwardedRef: React.RefForwardingComponent<TodoInputFieldWithForwardedRefProps> = React.forwardRef((props,  ref) => (
+    <TodoInputFieldwithDefaultProps {...props} ref={ref} />
   )
 )
 
@@ -314,6 +371,7 @@ const mapStateToProps = (state: TodoState) => {
 
 const todoActionCreators: TodoActionCreators = {
   add: addTodoActionCreator,
+  addAsync: asyncAddTodoActionCreator,
   remove: removeTodoActionCreator,
 }
 
