@@ -5,8 +5,18 @@ import ErrorboundyComponent from './ErrorboundyComponent'
 
 // defineTyped not support `lazy`
 // https://github.com/DefinitelyTyped/DefinitelyTyped/pull/30110
-const OtherComponent = (React as any).lazy(() => import('./OtherComponent'));
+// Deliberately delay
+const OtherComponent = (React as any).lazy(() => 
+    new Promise(resolve => {
+        setTimeout(
+            () => resolve(import('./OtherComponent')),
+            2000
+        )
+    })
+);
+// Do not consider dynamic import when bundled
 const AnotherComponent = (React as any).lazy(() => import('./AnotherComponent'));
+
 
 // defineTyped not support `Suspense`
 const Suspense = (React as any).Suspense
