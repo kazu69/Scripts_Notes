@@ -14,8 +14,9 @@ const Suspense = (React as any).Suspense
 
 const LazyComponent: React.SFC = _ => {
     return (
-        // multiple lazy components with a single Suspense component.
+        // Provide fallback on component loading error.
         <ErrorboundyComponent>
+            {/* multiple lazy components with a single Suspense component. */}
             <Suspense fallback={<div>Loading...</div>}>
                 <OtherComponent message="Hello" />
                 <AnotherComponent message="Hola" />
