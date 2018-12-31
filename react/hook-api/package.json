@@ -1,0 +1,42 @@
+{
+  "private": true,
+  "name": "hooks-api",
+  "version": "1.0.0",
+  "description": "",
+  "keywords": [],
+  "license": "MIT",
+  "dependencies": {
+    "react": "16.7.0-alpha.2",
+    "react-dom": "16.7.0-alpha.2"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.2.2",
+    "@babel/preset-env": "^7.2.3",
+    "@babel/register": "^7.0.0",
+    "@types/node": "^10.12.18",
+    "@types/react": "^16.7.18",
+    "@types/react-dom": "^16.0.11",
+    "@types/webpack": "^4.4.22",
+    "@types/webpack-dev-server": "^3.1.1",
+    "babel-core": "^6.26.3",
+    "babel-loader": "^8.0.4",
+    "ts-loader": "^5.3.2",
+    "ts-node": "^7.0.1",
+    "tsconfig-paths": "^3.7.0",
+    "typescript": "^3.2.2",
+    "webpack": "^4.28.2",
+    "webpack-cli": "^3.1.2",
+    "webpack-dev-server": "^3.1.13"
+  },
+  "scripts": {
+    "start": "webpack-dev-server --mode development --config ./webpack.config.babel.ts --open --hot",
+    "build": "webpack --mode production",
+    "build:dev": "TS_NODE_PROJECT=\"tsconfig.json\" webpack"
+  },
+  "browserslist": [
+    ">0.2%",
+    "not dead",
+    "not ie <= 11",
+    "not op_mini all"
+  ]
+}
