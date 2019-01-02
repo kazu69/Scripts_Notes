@@ -1,5 +1,5 @@
-import webpack from "webpack";
 import path from "path";
+import webpack from "webpack";
 import * as WebpackDevServer from "webpack-dev-server";
 
 const index = path.resolve(__dirname, "src/index.tsx");
