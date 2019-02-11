@@ -2,7 +2,7 @@ const cluster = require('cluster');
 
 let num = [];
 const start = 0,
-      end = 100;
+      end = 50000;
 
 const count = (start, end) => {
   const tmp = [];
