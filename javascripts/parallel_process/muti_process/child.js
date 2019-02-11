@@ -13,7 +13,6 @@ module.exports = function (inp, callback) {
   if (!inp) { return }
   const {start, end} = inp;
   count(start, end);
-  // console.log(num)
+  console.log(`${process.pid} running`);
   callback(null, num);
-  // callback(null, inp + ' (' + process.pid + ')')
 }

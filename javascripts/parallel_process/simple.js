@@ -12,7 +12,6 @@ const count = function(start, end) {
 } 
 
 count(start, end);
-console.log(num.length)
 const result =  num.reduce(function(prev, current, _, __) {
   return prev + current;
 });

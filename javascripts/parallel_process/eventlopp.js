@@ -5,7 +5,6 @@ const num = [],
 
 process.on('count', function(c) {
   if (c > end) {
-    console.log(num.length);
     const result = num.reduce(function(prev, current, _, __) {
       return prev + current;
     });

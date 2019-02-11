@@ -7,7 +7,7 @@ let workerFarm = require('worker-farm'),
 
 let num = [];
 const start = 0,
-      end = 100;
+      end = 50000;
 
 const child_prosess = require('os').cpus().length;
 
