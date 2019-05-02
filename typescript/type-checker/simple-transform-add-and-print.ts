@@ -20,7 +20,6 @@ const transformerWithDebug = <T extends ts.Node>(context: ts.TransformationConte
     function visit(node: ts.Node): ts.Node {
       // console.info(`Visiting: ${ts.SyntaxKind[node.kind]}\nText: ${node.getText()}\nChildCount: ${node.getChildCount()}\n`);
       if (ts.isVariableDeclaration(node)) {
-        console.log(node.type.kind)
         const declarations: ts.VariableDeclaration[] = [
           ts.createVariableDeclaration(
             ts.createIdentifier(node.name.getText()),
