@@ -133,7 +133,7 @@ function onRequestHandler(request: Http2ServerRequest, response: Http2ServerResp
     if (request.headers && request.headers.cookie) {
       const cookies = cookie.parse(request.headers.cookie);
 
-      request.socket.setTimeout(2000);
+      request.socket.setTimeout(1000 * 60 * 60 * 24);
       response.writeHead(200, {
         'Cache-Control': 'no-cache',
         'Content-type': 'text/event-stream',
