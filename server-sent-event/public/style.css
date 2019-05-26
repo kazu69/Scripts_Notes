@@ -1,0 +1,10 @@
+
+#userName {
+  font-weight: 700;
+}
+
+#chat {
+  background-color: #efefef;
+  border: 1px dotted #ddd;
+  min-height: 2em;
+}

@@ -1,0 +1,26 @@
+{
+  "name": "sse",
+  "version": "0.0.1",
+  "description": "",
+  "main": "server.js",
+  "dependencies": {
+    "cookie": "^0.4.0",
+    "mime-types": "^2.1.24",
+    "prettier": "^1.17.1",
+    "typescript": "^3.4.5",
+    "tslint-config-prettier": "^1.18.0",
+    "tslint": "^5.16.0"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "clean": "rm -rf app/*",
+    "lint": "tslint -c tslint.json -p tsconfig.json --fix",
+    "prettier": "tslint-config-prettier-check ./tslint.json",
+    "prebuild": "npm run lint",
+    "build": "tsc",
+    "start": "node app/server.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "MIT"
+}
